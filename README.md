@@ -5,7 +5,7 @@
     </td>
     <td>
       <h1>
-        FluffBox
+        FluffBox - (pre-release)
       </h1>
       さまざまな実行環境のインストール、バージョン変更、アンインストールを簡単に管理可能にするGUIソフトウェア
     </td>
