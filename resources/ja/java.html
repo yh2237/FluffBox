@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>FluffBox - Javaバージョン管理</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="stylesheet" href="./css/java.css">
+    </head>
+    <body>
+        <div class="sidebar">
+            <h2 class="logo-title">
+                <img src="../icon/fluffbox.ico" width="40">
+                <span>FluffBox</span>
+            </h2>
+            <div class="sidebar-button-group">
+                <button id="sidebarNodeButton" class="sidebar-button">Node.js</button>
+                <button id="sidebarPythonButton" class="sidebar-button">Python</button>
+                <button id="sidebarJavaButton" class="sidebar-button active">Java</button>
+            </div>
+        </div>
+        <div class="main-content">
+            <div class="container">
+                <h1>Java バージョン管理</h1>
+                <div class="form-group">
+                    <label for="versionSelect">インストールまたは切り替えを行うバージョンを選択:</label>
+                    <select id="versionSelect" class="block w-full">
+                        <option value="">バージョンを読み込み中...</option>
+                    </select>
+                </div>
+                <div class="button-group">
+                    <button id="installButton">選択したバージョンをインストール</button>
+                    <button id="switchButton">選択したバージョンに切り替える</button>
+                    <button id="deleteButton">選択したバージョンを削除</button>
+                </div>
+                <div id="loadingMessage" class="hidden">バージョンリストを読み込み中...</div>
+                <div id="installedVersionsList" class="hidden">
+                    <h2>インストール済みバージョン:</h2>
+                    <ul id="installedList"></ul>
+                </div>
+                <br>
+                <pre id="log"></pre>
+                <button id="backButton">戻る</button>
+            </div>
+        </div>
+        <script>
+            const { ipcRenderer } = require('electron');
+            const installButton = document.getElementById('installButton');
+            const switchButton = document.getElementById('switchButton');
+            const deleteButton = document.getElementById('deleteButton');
+            const versionSelect = document.getElementById('versionSelect');
+            const logElement = document.getElementById('log');
+            const loadingMessage = document.getElementById('loadingMessage');
+            const installedVersionsListDiv = document.getElementById('installedVersionsList');
+            const installedListUl = document.getElementById('installedList');
+            const backButton = document.getElementById('backButton');
+
+            const sidebarNodeButton = document.getElementById('sidebarNodeButton');
+            const sidebarPythonButton = document.getElementById('sidebarPythonButton');
+            const sidebarJavaButton = document.getElementById('sidebarJavaButton');
+
+            function setUIState(enabled) {
+                versionSelect.disabled = !enabled;
+                installButton.disabled = !enabled;
+                switchButton.disabled = !enabled;
+                deleteButton.disabled = !enabled;
+                backButton.disabled = !enabled;
+                sidebarNodeButton.disabled = false;
+                sidebarPythonButton.disabled = false;
+                sidebarJavaButton.disabled = false;
+            }
+
+            function updateInstalledVersionsUI(versions) {
+                installedListUl.innerHTML = '';
+                if (versions && versions.length > 0) {
+                    versions.forEach(version => {
+                        const li = document.createElement('li');
+                        li.textContent = version;
+                        installedListUl.appendChild(li);
+                    });
+                    installedVersionsListDiv.classList.remove('hidden');
+                } else {
+                    const li = document.createElement('li');
+                    li.textContent = 'インストール済みのバージョンはありません。';
+                    installedListUl.appendChild(li);
+                }
+            }
+
+            async function loadJavaVersions() {
+                setUIState(false);
+                loadingMessage.classList.remove('hidden');
+                versionSelect.innerHTML = '<option value="">バージョンを読み込み中...</option>';
+                logElement.textContent = '';
+
+                try {
+                    const { available, installed } = await ipcRenderer.invoke('get-java-versions');
+                    versionSelect.innerHTML = '';
+
+                    if (available && available.length > 0) {
+                        const defaultOption = document.createElement('option');
+                        defaultOption.value = '';
+                        defaultOption.textContent = 'バージョンを選択してください';
+                        versionSelect.appendChild(defaultOption);
+
+                        available.forEach(version => {
+                            const option = document.createElement('option');
+                            option.value = version;
+                            option.textContent = version;
+                            versionSelect.appendChild(option);
+                        });
+                    } else {
+                        versionSelect.innerHTML = '<option value="">利用可能なバージョンが見つかりませんでした。</option>';
+                        logElement.textContent += '❌ 利用可能なJavaバージョンが見つかりませんでした。\n';
+                    }
+
+                    updateInstalledVersionsUI(installed);
+
+                } catch (error) {
+                    versionSelect.innerHTML = '<option value="">バージョン読み込みエラー</option>';
+                    logElement.textContent += `❌ Javaバージョンリストの取得に失敗しました: ${error.message}\n`;
+                } finally {
+                    setUIState(true);
+                    loadingMessage.classList.add('hidden');
+                }
+            }
+
+            async function installJava() {
+                const selectedVersion = versionSelect.value;
+                if (!selectedVersion) {
+                    logElement.textContent += '⚠️ インストールするバージョンを選択してください。\n';
+                    return;
+                }
+
+                setUIState(false);
+                logElement.textContent = '';
+
+                try {
+                    logElement.textContent += `⚙️ Java ${selectedVersion} のインストールの開始...\n`;
+                    const result = await ipcRenderer.invoke('install-java-version', selectedVersion);
+                    if (result === 'already_managed') {
+                        logElement.textContent += `Java ${selectedVersion} は既にこのツールで管理されています。`;
+                    } else {
+                        logElement.textContent += `✅ Java ${selectedVersion} のインストールとアクティブ化が完了しました。`;
+                    }
+                    await loadJavaVersions();
+                } catch (error) {
+                    logElement.textContent += `❌ Javaインストール中にエラーが発生しました: ${error.message}\n`;
+                } finally {
+                    setUIState(true);
+                }
+            }
+
+            async function switchJavaVersion() {
+                const selectedVersion = versionSelect.value;
+                if (!selectedVersion) {
+                    logElement.textContent += '⚠️ 切り替えるバージョンを選択してください。\n';
+                    return;
+                }
+
+                setUIState(false);
+                logElement.textContent = '';
+
+                try {
+                    logElement.textContent += `⚙️ Java ${selectedVersion} への切り替えを開始します...\n`;
+                    await ipcRenderer.invoke('switch-java-version', selectedVersion);
+                    logElement.textContent += `✅ Java ${selectedVersion} への切り替えが完了しました。`;
+                    await loadJavaVersions();
+                } catch (error) {
+                    logElement.textContent += `❌ Javaバージョン切り替え中にエラーが発生しました: ${error.message}\n`;
+                } finally {
+                    setUIState(true);
+                }
+            }
+
+            async function deleteJavaVersion() {
+                const selectedVersion = versionSelect.value;
+                if (!selectedVersion) {
+                    logElement.textContent += '⚠️ 削除するバージョンを選択してください。\n';
+                    return;
+                }
+
+                setUIState(false);
+                logElement.textContent = '';
+
+                try {
+                    logElement.textContent += `⚙️ Java ${selectedVersion} の削除を開始します...\n`;
+                    await ipcRenderer.invoke('delete-java-version', selectedVersion);
+                    logElement.textContent += `✅ Java ${selectedVersion} の削除が完了しました。`;
+                    await loadJavaVersions();
+                } catch (error) {
+                    logElement.textContent += `❌ Javaバージョン削除中にエラーが発生しました: ${error.message}\n`;
+                } finally {
+                    setUIState(true);
+                }
+            }
+
+            backButton.addEventListener('click', () => {
+                ipcRenderer.invoke('load-page', 'index');
+            });
+
+            document.addEventListener('DOMContentLoaded', loadJavaVersions);
+            installButton.addEventListener('click', installJava);
+            switchButton.addEventListener('click', switchJavaVersion);
+            deleteButton.addEventListener('click', deleteJavaVersion);
+
+            sidebarNodeButton.addEventListener('click', () => {
+                ipcRenderer.invoke('load-page', 'nodejs');
+            });
+            sidebarPythonButton.addEventListener('click', () => {
+                ipcRenderer.invoke('load-page', 'python');
+            });
+            sidebarJavaButton.addEventListener('click', () => {
+            });
+
+            ipcRenderer.on('java-log', (event, msg) => {
+                logElement.textContent += msg + '\n';
+                logElement.scrollTop = logElement.scrollHeight;
+            });
+        </script>
+    </body>
+</html>

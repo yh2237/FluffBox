@@ -1,0 +1,37 @@
+[
+  {
+    "label": "ファイル",
+    "submenu": [
+      { "label": "プロファイルを開く（まだ完成してない）" },
+      { "label": "プロファイルを作成 （上に同じく未完成）" },
+      {
+        "label": "フォルダを開く", "submenu": [
+          { "label": "Node.jsフォルダを開く", "id": "openFolderNodejs" },
+          { "label": "Pythonフォルダを開く", "id": "openFolderPython" },
+          { "label": "Javaフォルダを開く", "id": "openFolderJava" }
+        ]
+      },
+      { "label": "実行環境を削除", "submenu": [
+        { "label": "すべての実行環境を削除", "id": "removeAll" },
+        { "type": "separator" },
+        { "label": "Node.jsを削除", "id": "removeNodejs" },
+        { "label": "Pythonを削除", "id": "removePython" },
+        { "label": "Javaを削除", "id": "removeJava" }
+      ]},
+      { "type": "separator" },
+      { "label": "設定", "id": "openConfig" },
+      { "type": "separator" },
+      { "label": "終了", "role": "quit" }
+    ]
+  },
+  {
+    "label": "ヘルプ",
+    "submenu": [
+      { "label": "バージョン情報", "id": "showVersion" },
+      { "label": "GitHub", "id": "openGithub" },
+      { "label": "問題を報告", "id": "openIssue" },
+      { "type": "separator" },
+      { "label": "ライセンス", "id": "showLicense" }
+    ]
+  }
+]

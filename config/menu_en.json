@@ -1,0 +1,37 @@
+[
+  {
+    "label": "Files",
+    "submenu": [
+      { "label": "Open your profile (not yet complete)" },
+      { "label": "Create a profile (as above, incomplete)" },
+      {
+        "label": "Open Folder", "submenu": [
+          { "label": "Open the Node.js folder", "id": "openFolderNodejs" },
+          { "label": "Open the Python folder", "id": "openFolderPython" },
+          { "label": "Open the Java folder", "id": "openFolderJava" }
+        ]
+      },
+      { "label": "Delete the execution environment", "submenu": [
+        { "label": "Delete all execution environments", "id": "removeAll" },
+        { "type": "separator" },
+        { "label": "Remove Node.js", "id": "removeNodejs" },
+        { "label": "Remove Python", "id": "removePython" },
+        { "label": "Remove Java", "id": "removeJava" }
+      ]},
+      { "type": "separator" },
+      { "label": "setting", "id": "openConfig" },
+      { "type": "separator" },
+      { "label": "quit", "role": "quit" }
+    ]
+  },
+  {
+    "label": "Help",
+    "submenu": [
+      { "label": "Version Information", "id": "showVersion" },
+      { "label": "GitHub", "id": "openGithub" },
+      { "label": "Report an issue", "id": "openIssue" },
+      { "type": "separator" },
+      { "label": "License", "id": "showLicense" }
+    ]
+  }
+]

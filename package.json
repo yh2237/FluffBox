@@ -1,0 +1,46 @@
+{
+  "name": "fluffbox",
+  "version": "1.0.0",
+  "description": "GUI software that can centrally manage various execution environments",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "packager": "electron-packager . FluffBox --platform=win32 --arch=x64 --out=out-packager --overwrite",
+    "builder": "electron-builder"
+  },
+  "build": {
+    "appId": "net.fluffbox",
+    "productName": "FluffBox",
+    "artifactName": "${productName}-Setup-${version}.${ext}",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      "!node_modules/electron*",
+      "!out-packager/",
+      "!dist/"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "./resources/icon/fluffbox.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "FluffBox"
+    }
+  },
+  "devDependencies": {
+    "electron": "^36.5.0",
+    "electron-builder": "^26.0.12",
+    "electron-packager": "^17.1.2"
+  },
+  "dependencies": {
+    "adm-zip": "^0.5.16",
+    "js-yaml": "^4.1.0"
+  }
+}

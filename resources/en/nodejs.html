@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>FluffBox - Node.js version management</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="stylesheet" href="./css/nodejs.css">
+    </head>
+    <body>
+        <div class="sidebar">
+            <h2 class="logo-title">
+                <img src="../icon/fluffbox.ico" width="40">
+                <span>FluffBox</span>
+            </h2>
+            <div class="sidebar-button-group">
+                <button id="sidebarNodeButton" class="sidebar-button active">Node.js</button>
+                <button id="sidebarPythonButton" class="sidebar-button">Python</button>
+                <button id="sidebarJavaButton" class="sidebar-button">Java</button>
+            </div>
+        </div>
+        <div class="main-content">
+            <div class="container">
+                <h1>Node.js Version Control</h1>
+                <div class="form-group">
+                    <label for="versionSelect">Select the version you want to install or switch to:</label>
+                    <select id="versionSelect" class="block w-full">
+                        <option value="">Loading versions...</option>
+                    </select>
+                </div>
+                <div class="button-group">
+                    <button id="installButton">Install the selected version</button>
+                    <button id="switchButton">Switch to the selected version</button>
+                    <button id="deleteButton">Delete the selected version</button>
+                </div>
+                <div id="loadingMessage" class="hidden">Loading version list...</div>
+                <div id="installedVersionsList" class="hidden">
+                    <h2>Installed Version:</h2>
+                    <ul id="installedList"></ul>
+                </div>
+                <br>
+                <pre id="log"></pre>
+                <button id="backButton">return</button>
+            </div>
+        </div>
+        <script>
+    const { ipcRenderer } = require('electron');
+    const installButton = document.getElementById('installButton');
+    const switchButton = document.getElementById('switchButton');
+    const deleteButton = document.getElementById('deleteButton');
+    const versionSelect = document.getElementById('versionSelect');
+    const logElement = document.getElementById('log');
+    const loadingMessage = document.getElementById('loadingMessage');
+    const installedVersionsListDiv = document.getElementById('installedVersionsList');
+    const installedListUl = document.getElementById('installedList');
+    const backButton = document.getElementById('backButton');
+    const sidebarNodeButton = document.getElementById('sidebarNodeButton');
+    const sidebarPythonButton = document.getElementById('sidebarPythonButton');
+    const sidebarJavaButton = document.getElementById('sidebarJavaButton');
+
+    function setUIState(enabled) {
+      versionSelect.disabled = !enabled;
+      installButton.disabled = !enabled;
+      switchButton.disabled = !enabled;
+      deleteButton.disabled = !enabled;
+      backButton.disabled = !enabled;
+      sidebarNodeButton.disabled = false;
+      sidebarPythonButton.disabled = false;
+      sidebarJavaButton.disabled = false;
+    }
+
+    function updateInstalledVersionsUI(versions) {
+        installedListUl.innerHTML = '';
+        if (versions && versions.length > 0) {
+            versions.forEach(version => {
+                const li = document.createElement('li');
+                li.textContent = version;
+                installedListUl.appendChild(li);
+            });
+            installedVersionsListDiv.classList.remove('hidden');
+        } else {
+            const li = document.createElement('li');
+            li.textContent = 'There is no version installed.';
+            installedListUl.appendChild(li);
+        }
+    }
+
+    async function loadNodeVersions() {
+      setUIState(false);
+      loadingMessage.classList.remove('hidden');
+      versionSelect.innerHTML = '<option value="">Loading versions...</option>';
+      logElement.textContent = '';
+
+      try {
+        const { available, installed } = await ipcRenderer.invoke('get-node-versions');
+        versionSelect.innerHTML = '';
+
+        if (available && available.length > 0) {
+          const defaultOption = document.createElement('option');
+          defaultOption.value = '';
+          defaultOption.textContent = 'Choose your version';
+          versionSelect.appendChild(defaultOption);
+
+          available.forEach(version => {
+            const option = document.createElement('option');
+            option.value = version;
+            option.textContent = version;
+            versionSelect.appendChild(option);
+          });
+        } else {
+          versionSelect.innerHTML = '<option value="">No version found available.</option>';
+          logElement.textContent += '❌ No available Node.js version found.\n';
+        }
+        
+        updateInstalledVersionsUI(installed);
+
+      } catch (error) {
+        versionSelect.innerHTML = '<option value="">Version load error/option>';
+        logElement.textContent += `❌ Failed to get Node.js version list: ${error.message}\n`;
+      } finally {
+        setUIState(true);
+        loadingMessage.classList.add('hidden');
+      }
+    }
+
+    async function installNode() {
+      const selectedVersion = versionSelect.value;
+      if (!selectedVersion) {
+        logElement.textContent += '⚠️ Select the version you want to install.\n';
+        return;
+      }
+
+      setUIState(false);
+      logElement.textContent = '';
+
+      try {
+        logElement.textContent += `Starting installation of Node.js ${selectedVersion}...\n`;
+        const result = await ipcRenderer.invoke('install-node-version', selectedVersion);
+        if (result === 'already_managed') {
+            logElement.textContent += `Node.js ${selectedVersion} is already installed.`;
+        } else {
+            logElement.textContent += `✅ Node.js ${selectedVersion} has been installed and activated.`;
+        }
+        await loadNodeVersions();
+      } catch (error) {
+        logElement.textContent += `❌ An error occurred while installing Node.js: ${error.message}\n`;
+      } finally {
+        setUIState(true);
+      }
+    }
+
+    async function switchNodeVersion() {
+      const selectedVersion = versionSelect.value;
+      if (!selectedVersion) {
+        logElement.textContent += '⚠️ Choose the version you want to switch to。\n';
+        return;
+      }
+
+      setUIState(false);
+      logElement.textContent = '';
+
+      try {
+        logElement.textContent += `⚙️ Initiating switch to Node.js ${selectedVersion}...\n`;
+        await ipcRenderer.invoke('switch-node-version', selectedVersion);
+        logElement.textContent += `✅ Switch to Node.js ${selectedVersion} completed.`;
+        await loadNodeVersions();
+      } catch (error) {
+        logElement.textContent += `❌ An error occurred while switching Node.js versions: ${error.message}\n`;
+      } finally {
+        setUIState(true);
+      }
+    }
+
+    async function deleteNodeVersion() {
+        const selectedVersion = versionSelect.value;
+        if (!selectedVersion) {
+            logElement.textContent += '⚠️ Select the version you want to delete.\n';
+            return;
+        }
+
+        setUIState(false);
+        logElement.textContent = '';
+
+        try {
+            logElement.textContent += `Beginning removal of Node.js ${selectedVersion}...\n`;
+            await ipcRenderer.invoke('delete-node-version', selectedVersion);
+            logElement.textContent += `✅ Removal of Node.js ${selectedVersion} completed.`;
+            await loadNodeVersions();
+        } catch (error) {
+            logElement.textContent += `❌ An error occurred while deleting the Node.js version: ${error.message}\n`;
+        } finally {
+            setUIState(true);
+        }
+    }
+
+    backButton.addEventListener('click', () => {
+      ipcRenderer.invoke('load-page', 'index');
+    });
+
+    document.addEventListener('DOMContentLoaded', loadNodeVersions);
+    installButton.addEventListener('click', installNode);
+    switchButton.addEventListener('click', switchNodeVersion);
+    deleteButton.addEventListener('click', deleteNodeVersion);
+
+    sidebarNodeButton.addEventListener('click', () => {
+    });
+    sidebarPythonButton.addEventListener('click', () => {
+        ipcRenderer.invoke('load-page', 'python');
+    });
+    sidebarJavaButton.addEventListener('click', () => {
+        ipcRenderer.invoke('load-page', 'java');
+    });
+
+    ipcRenderer.on('node-log', (event, msg) => {
+      logElement.textContent += msg + '\n';
+      logElement.scrollTop = logElement.scrollHeight;
+    });
+        </script>
+    </body>
+</html>

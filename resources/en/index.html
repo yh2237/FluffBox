@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>FluffBox</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+        <link rel="stylesheet" href="./css/index.css">
+    </head>
+    <body>
+        <div class="sidebar">
+            <h2 class="logo-title">
+                <img src="../icon/fluffbox.ico" width="40">
+                <span>FluffBox</span>
+            </h2>
+            <div class="sidebar-button-group">
+                <button id="sidebarNodeButton" class="sidebar-button">
+                    <i class="fa-brands fa-node-js"></i>
+                    Node.js
+                </button>
+                <button id="sidebarPythonButton" class="sidebar-button">
+                    <i class="fa-brands fa-python"></i>
+                    Python
+                </button>
+                <button id="sidebarJavaButton" class="sidebar-button">
+                    <i class="fa-brands fa-java"></i>
+                    Java
+                </button>
+            </div>
+        </div>
+        <div class="main-content">
+            <div class="container">
+                <h1>Welcome to FluffBox</h1>
+                <p>FluffBox allows you to install, uninstall, and version control various execution environments!</p>
+                <br>
+                <h1>Currently the following operating environments are supported:</h1>
+                <hr style="margin: 5px 0; border: none; border-top: 1px solid rgb(96, 96, 96);">
+                <ul>
+                    <li>
+                        ・
+                        <i class="fa-brands fa-node-js"></i>
+                        Node.js
+                    </li>
+                    <li>
+                        ・
+                        <i class="fa-brands fa-python"></i>
+                        Python
+                    </li>
+                    <li>
+                        ・
+                        <i class="fa-brands fa-java"></i>
+                        Java
+                    </li>
+                    <li>（There are only three so far, but I plan to add more in the future.）</li>
+                </ul>
+                <hr style="margin: 5px 0; border: none; border-top: 1px solid rgb(96, 96, 96);">
+                <p>From the menu on the left, select your environment</p>
+            </div>
+        </div>
+        <script>
+            const { ipcRenderer } = require('electron');
+
+            document.getElementById('sidebarNodeButton').addEventListener('click', () => {
+                ipcRenderer.invoke('load-page', 'nodejs');
+            });
+            document.getElementById('sidebarPythonButton').addEventListener('click', () => {
+                ipcRenderer.invoke('load-page', 'python');
+            });
+            document.getElementById('sidebarJavaButton').addEventListener('click', () => {
+                ipcRenderer.invoke('load-page', 'java');
+            });
+        </script>
+    </body>
+</html>

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head></head>
+    <body>
+        <h1>設定</h1>
+        <span>言語:</span>
+        <select id="langSelect">
+            <option value="en">English - 英語</option>
+            <option value="ja">Japanese - 日本語</option>
+        </select>
+        <span>（Google翻訳）</span>
+        <br>
+        <p>設定を変更した後はFluffBoxを再起動してください。</p>
+        <p>Please restart FluffBox after changing the settings.</p>
+        <br>
+        <button id="confirmBtn">確定</button>
+        <script>
+        const { ipcRenderer } = require('electron');
+        
+        document.getElementById('confirmBtn').addEventListener('click', () => {
+            const selected = document.getElementById('langSelect').value;
+            ipcRenderer.invoke('set-lang', selected).then(() => {
+                location.reload();
+            });
+        });
+        </script>
+    </body>
+</html>
