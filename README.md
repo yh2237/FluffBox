@@ -1,55 +1,78 @@
 <table>
   <tr>
     <td>
-      <img src="https://github.com/user-attachments/assets/aa1b8801-b5e9-418a-bd7c-57336bb9dca1" width="128">
+      <img src="https://github.com/user-attachments/assets/aa1b8801-b5e9-418a-bd7c-57336bb9dca1" alt="FluffBox Icon" width="128">
     </td>
     <td>
-      <h1>
-        FluffBox - (pre-release)
-      </h1>
-      さまざまな実行環境のインストール、バージョン変更、アンインストールを簡単に管理可能にするGUIソフトウェア
+      <h1>FluffBox - (pre-release)</h1>
+      <p>GUI software for easy installation, versioning, and uninstall of various runtime environments</p>
     </td>
   </tr>
 </table>
 
-## 🌟 概要
+🌐 Language: [🇺🇸 English](./README.md) | [🇯🇵 日本語](docs/README_ja.md)
 
-FluffBoxは様々な実行環境のインストール、バージョン変更、アンインストールを素早く容易に行えるようにするためのソフトウェアです。<br>
-主にプログラミング初学者や、シンプルに環境構築が面倒くさい人向けのものです。
+---
 
-### GUIで様々な実行環境の一元管理ができます。
-- 現在対応している実行環境
-  - Node.js
-  - Python
-  - Java
-  - （今後のアップデートでもっと追加予定）
+## 🌟 Overview.
 
-### ~~プロファイルを読み込んで指定の実行環境、バージョンをインストールして環境構築を一瞬で終わらせます。~~
-- ~~プロファイルファイルの例~~
-```markdown
-まだプロファイルを読み込む機能は実装してない。なるべく早めに実装しようと思う。
+**FluffBox** is software that allows you to easily install, switch, and remove multiple programming runtime environments.
+It is a simple GUI application especially for beginners and those who find it troublesome to build environments.
+
+### 🎛 Supported runtime environments (more to be added)
+
+- Node.js
+- Python
+- Java
+
+---
+
+## 🚧 Planned future features (under development)
+
+~~Automatic installation of a specified execution environment and version by reading a profile~~
+This feature is not implemented yet, but in the future we plan to enable batch automation of environment building by reading configuration files such as the following.
+
+<details> 
+<summary>📄 Example: profile file (planned)</summary>
+
+```json
+{
+  "node": "18.16.0",
+  "python": "3.11.5",
+  "java": "17"
+}
 ```
+</details>
 
-## 📦 インストール方法
+---
 
-[Latest（v1.0.0）](https://github.com/yh2237/FluffBox/releases/tag/v1.0.0)<br>
-- 上記リリースを開いて自分のOSに対応するものをダウンロード。（v1.0.0現在Windows版のみ）
-- インストーラーを実行
-- OK!
+## 📦 Installation Instructions
 
-## 🚀 使い方
+🔗[Latest Version (v1.0.0)](https://github.com/yh2237/FluffBox/releases/tag/v1.0.0)
 
-### __特に難しいことはない！__
+---
 
-__元から実行環境が入っている状態だと正常に動作しないことがありますが__<br>
-- 元から入っている実行環境へのPATHを削除。
-- 実行環境そのものをアンインストール。<br>
+## 🚀 How to use
 
-#### __上記の方法で治ります。__
+### No technical knowledge required!
 
-#### __その他の設定__
-- 上部メニューのファイル⇒設定、から言語を変更可能。
-- 上部メニューのファイル⇒実行環境の削除、からすべてまたは一種類の実行環境を削除可能。
+However, be careful if the same runtime environments are already installed in your system.
 
-## 📜 ライセンス
-- MITライセンス
+✅ **Actions to take in case of trouble**.
+
+If you already have an environment installed on your system, FluffBox may not work properly.
+
+- The following actions will solve the problem:
+  - Delete the PATH set in the existing environment.
+  - Uninstall the relevant execution environment.
+
+⚙️ **Other configuration features**
+
+- Change the display language from **File** → **Settings**.
+- Delete specific or all runtime environments from **File** → **Delete Execution Environment**.
+
+---
+
+## 📜 License
+
+This software is licensed under the [MIT License](./LICENSE).
