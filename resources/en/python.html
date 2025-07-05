@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>FluffBox - Python version control</title>
+        <title>FluffBox - Python Version Control</title>
         <script src="https://cdn.tailwindcss.com"></script>
-        <link rel="stylesheet" href="./css/python.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+        <link rel="stylesheet" href="../css/python.css">
     </head>
     <body>
         <div class="sidebar">
@@ -14,136 +15,140 @@
                 <span>FluffBox</span>
             </h2>
             <div class="sidebar-button-group">
-                <button id="sidebarNodeButton" class="sidebar-button">Node.js</button>
-                <button id="sidebarPythonButton" class="sidebar-button active">Python</button>
-                <button id="sidebarJavaButton" class="sidebar-button">Java</button>
+                <button id="sidebarNodeButton" class="sidebar-button"><i class="fa-brands fa-node-js"></i> Node.js</button>
+                <button id="sidebarPythonButton" class="sidebar-button active"><i class="fa-brands fa-python"></i> Python</button>
+                <button id="sidebarJavaButton" class="sidebar-button"><i class="fa-brands fa-java"></i> Java</button>
+                <!-- <button id="sidebarGoButton" class="sidebar-button">Go</button> -->
+            </div>
+            <div class="sidebar-footer">
+                <button id="backButton" class="sidebar-button">Back</button>
             </div>
         </div>
         <div class="main-content">
             <div class="container">
-                <h1>Python version control</h1>
                 <div class="form-group">
-                    <label for="versionSelect">Select the version you want to install or switch to:</label>
-                    <select id="versionSelect" class="block w-full">
-                        <option value="">Loading versions...</option>
+                    <label for="versionSelect">Select the version to install or switch to:</label>
+                    <select id="versionSelect" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                        <option value="">Loading version...</option>
                     </select>
                 </div>
-                <div class="button-group">
-                    <button id="installButton">Install the selected version</button>
-                    <button id="switchButton">Switch to the selected version</button>
-                    <button id="deleteButton">Delete the selected version</button>
+                <div class="button-group flex space-x-4 mt-4">
+                    <button id="installButton" class="btn btn-primary bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">Install selected version</button>
+                    <button id="switchButton" class="btn btn-secondary bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">Switch to selected version</button>
+                    <button id="deleteButton" class="btn btn-danger bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">Delete selected version</button>
                 </div>
-                <div id="loadingMessage" class="hidden">Loading version list...</div>
-                <div id="installedVersionsList" class="hidden">
-                    <h2>Installed Version:</h2>
-                    <ul id="installedList"></ul>
+                <h2 class="mt-8 text-xl font-bold">Installed Version:</h2>
+                <div id="installedVersions" class="bg-gray-100 p-4 rounded-lg shadow-inner min-h-[100px] overflow-y-auto border border-gray-200">
+                    <p>Loading installed version...</p>
                 </div>
-                <br>
-                <pre id="log"></pre>
-                <button id="backButton">return</button>
+                <p class="mt-4 text-lg">
+                    Current active Python version:
+                    <span id="activePythonVersion" class="font-semibold text-blue-600">unconfirmed</span>
+                </p>
+                <h2 class="mt-8 text-xl font-bold">Log:</h2>
+                <div id="log" class="bg-gray-800 text-white p-4 rounded-lg shadow-inner min-h-[200px] max-h-[300px] overflow-y-auto text-sm font-mono whitespace-pre-wrap"></div>
             </div>
         </div>
         <script>
             const { ipcRenderer } = require('electron');
+
+            const versionSelect = document.getElementById('versionSelect');
             const installButton = document.getElementById('installButton');
             const switchButton = document.getElementById('switchButton');
             const deleteButton = document.getElementById('deleteButton');
-            const versionSelect = document.getElementById('versionSelect');
+            const installedVersionsDiv = document.getElementById('installedVersions');
+            const activePythonVersionSpan = document.getElementById('activePythonVersion');
             const logElement = document.getElementById('log');
-            const loadingMessage = document.getElementById('loadingMessage');
-            const installedVersionsListDiv = document.getElementById('installedVersionsList');
-            const installedListUl = document.getElementById('installedList');
             const backButton = document.getElementById('backButton');
             const sidebarNodeButton = document.getElementById('sidebarNodeButton');
             const sidebarPythonButton = document.getElementById('sidebarPythonButton');
             const sidebarJavaButton = document.getElementById('sidebarJavaButton');
+            const sidebarGoButton = document.getElementById('sidebarGoButton');
+
+            function appendLog(message) {
+                const p = document.createElement('p');
+                p.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+                logElement.appendChild(p);
+                logElement.scrollTop = logElement.scrollHeight;
+            }
+
+            ipcRenderer.on('python-log', (event, msg) => {
+                appendLog(msg);
+            });
 
             function setUIState(enabled) {
-                versionSelect.disabled = !enabled;
                 installButton.disabled = !enabled;
                 switchButton.disabled = !enabled;
                 deleteButton.disabled = !enabled;
-                backButton.disabled = !enabled;
-                sidebarNodeButton.disabled = false;
-                sidebarPythonButton.disabled = false;
-                sidebarJavaButton.disabled = false;
+                versionSelect.disabled = !enabled;
             }
 
-            function updateInstalledVersionsUI(versions) {
-                installedListUl.innerHTML = '';
-                if (versions && versions.length > 0) {
-                    versions.forEach(version => {
-                        const li = document.createElement('li');
-                        li.textContent = version;
-                        installedListUl.appendChild(li);
+            async function loadAvailablePythonVersions() {
+                versionSelect.innerHTML = '<option value="">Loading version...</option>';
+                appendLog('Loading available Python versions...');
+                try {
+                    const versions = await ipcRenderer.invoke('get-available-python-versions');
+                    versionSelect.innerHTML = '<option value="">-- Select version --</option>';
+                    versions.forEach(v => {
+                        const option = document.createElement('option');
+                        option.value = v.version;
+                        option.textContent = `${v.version}`;
+                        versionSelect.appendChild(option);
                     });
-                    installedVersionsListDiv.classList.remove('hidden');
-                } else {
-                    const li = document.createElement('li');
-                    li.textContent = 'There is no version installed.';
-                    installedListUl.appendChild(li);
+                    appendLog(`Loaded available versions: ${versions.length}`);
+                } catch (error) {
+                    appendLog(`Error: Could not load available Python version - ${error.message}`);
+                    versionSelect.innerHTML = '<option value="">Error: load failed</option>';
                 }
             }
 
-            async function loadPythonVersions() {
-                setUIState(false);
-                loadingMessage.classList.remove('hidden');
-                versionSelect.innerHTML = '<option value="">Loading version...</option>';
-                logElement.textContent = '';
-
+            async function loadInstalledPythonVersions() {
+                installedVersionsDiv.innerHTML = '<p>Loading installed version...</p>';
+                activePythonVersionSpan.textContent = 'unconfirmed';
+                appendLog('Loading installed Python version...');
                 try {
-                    const { available, installed } = await ipcRenderer.invoke('get-python-versions');
-                    versionSelect.innerHTML = '';
-
-                    if (available && available.length > 0) {
-                        const defaultOption = document.createElement('option');
-                        defaultOption.value = '';
-                        defaultOption.textContent = 'Choose your version';
-                        versionSelect.appendChild(defaultOption);
-
-                        available.forEach(version => {
-                            const option = document.createElement('option');
-                            option.value = version;
-                            option.textContent = version;
-                            versionSelect.appendChild(option);
-                        });
+                    const { installed, current } = await ipcRenderer.invoke('get-installed-python-versions');
+                    installedVersionsDiv.innerHTML = '';
+                    if (installed.length === 0) {
+                        installedVersionsDiv.innerHTML = '<p>There is no installed Python version.</p>';
                     } else {
-                        versionSelect.innerHTML = '<option value="">No version found available.</option>';
-                        logElement.textContent += '❌ No available Python version was found.\n';
+                        installed.forEach(v => {
+                            const p = document.createElement('p');
+                            p.textContent = `${v} ${v === current ? '(Currently Active)' : ''}`;
+                            installedVersionsDiv.appendChild(p);
+                        });
                     }
-
-                    updateInstalledVersionsUI(installed);
-
+                    activePythonVersionSpan.textContent = current || 'none';
+                    appendLog(`Loaded installed version. Current: ${current || 'none'}`);
                 } catch (error) {
-                    versionSelect.innerHTML = '<option value="">Version load error</option>';
-                    logElement.textContent += `❌ Failed to get Python version list: ${error.message}\n`;
-                } finally {
-                    setUIState(true);
-                    loadingMessage.classList.add('hidden');
+                    appendLog(`Error: Could not load installed Python version - ${error.message}`);
+                    installedVersionsDiv.innerHTML = '<p>Error: load failed</p>';
                 }
             }
 
             async function installPython() {
                 const selectedVersion = versionSelect.value;
                 if (!selectedVersion) {
-                    logElement.textContent += '⚠️ Select the version you want to install.\n';
+                    appendLog('⚠️ Please select the version you wish to install.');
                     return;
                 }
 
                 setUIState(false);
-                logElement.textContent = '';
+                appendLog(`Start Python ${selectedVersion} installation...`);
 
                 try {
-                    logElement.textContent += `⚙️ Starting installation of Python ${selectedVersion}...\n`;
-                    const result = await ipcRenderer.invoke('install-python-version', selectedVersion);
-                    if (result === 'already_managed') {
-                        logElement.textContent += `Python ${selectedVersion} is already installed.`;
-                    } else {
-                        logElement.textContent += `✅ Python ${selectedVersion} has been installed and activated.`;
+                    const availableVersions = await ipcRenderer.invoke('get-available-python-versions');
+                    const versionInfo = availableVersions.find(v => v.version === selectedVersion);
+
+                    if (!versionInfo) {
+                        throw new Error('Download information for the selected version cannot be found.');
                     }
-                    await loadPythonVersions();
+
+                    await ipcRenderer.invoke('install-python-version', versionInfo);
+                    appendLog(`✅ Python ${selectedVersion} installation is complete.`);
+                    await loadInstalledPythonVersions();
                 } catch (error) {
-                    logElement.textContent += `❌ An error occurred while installing Python: ${error.message}\n`;
+                    appendLog(`❌ Error during Python version installation: ${error.message}`);
                 } finally {
                     setUIState(true);
                 }
@@ -152,20 +157,19 @@
             async function switchPythonVersion() {
                 const selectedVersion = versionSelect.value;
                 if (!selectedVersion) {
-                    logElement.textContent += '⚠️ Select the version you want to switch to.\n';
+                    appendLog('⚠️ Please select the version to switch to.');
                     return;
                 }
 
                 setUIState(false);
-                logElement.textContent = '';
+                appendLog(`Start switching to Python ${selectedVersion}...`);
 
                 try {
-                    logElement.textContent += `⚙️ Initiating switch to Python ${selectedVersion}...\n`;
-                    await ipcRenderer.invoke('switch-python-version', selectedVersion);
-                    logElement.textContent += `✅ Switch to Python ${selectedVersion} completed.`;
-                    await loadPythonVersions();
+                    await ipcRenderer.invoke('use-python-version', selectedVersion);
+                    appendLog(`✅ Python version switched to ${selectedVersion}.`);
+                    await loadInstalledPythonVersions();
                 } catch (error) {
-                    logElement.textContent += `❌ An error occurred while switching Python versions: ${error.message}\n`;
+                    appendLog(`❌ Error while switching Python version: ${error.message}`);
                 } finally {
                     setUIState(true);
                 }
@@ -174,23 +178,33 @@
             async function deletePythonVersion() {
                 const selectedVersion = versionSelect.value;
                 if (!selectedVersion) {
-                    logElement.textContent += '⚠️ Select the version you want to delete.\n';
+                    appendLog('⚠️ Please select the version you wish to delete.');
+                    return;
+                }
+
+                const confirmDelete = window.confirm(`Do you really want to remove Python ${selectedVersion}?`);
+                if (!confirmDelete) {
+                    appendLog('Deletion canceled.');
                     return;
                 }
 
                 setUIState(false);
-                logElement.textContent = '';
+                appendLog(`Python ${selectedVersion} start deleting...`);
 
                 try {
-                    logElement.textContent += `⚙️ Starting to remove Python ${selectedVersion}...\n`;
                     await ipcRenderer.invoke('delete-python-version', selectedVersion);
-                    logElement.textContent += `✅ Removal of Python ${selectedVersion} completed.`;
+                    appendLog(`✅ Python ${selectedVersion} has been removed.`);
                     await loadPythonVersions();
                 } catch (error) {
-                    logElement.textContent += `❌ An error occurred while deleting the Python version: ${error.message}\n`;
+                    appendLog(`❌ Error while removing Python version: ${error.message}`);
                 } finally {
                     setUIState(true);
                 }
+            }
+
+            async function loadPythonVersions() {
+                await loadAvailablePythonVersions();
+                await loadInstalledPythonVersions();
             }
 
             backButton.addEventListener('click', () => {
@@ -210,10 +224,8 @@
             sidebarJavaButton.addEventListener('click', () => {
                 ipcRenderer.invoke('load-page', 'java');
             });
-
-            ipcRenderer.on('python-log', (event, msg) => {
-                logElement.textContent += msg + '\n';
-                logElement.scrollTop = logElement.scrollHeight;
+            sidebarGoButton.addEventListener('click', () => {
+                ipcRenderer.invoke('load-page', 'go');
             });
         </script>
     </body>

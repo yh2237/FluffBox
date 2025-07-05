@@ -8,6 +8,7 @@ const { registerNodeHandlers } = require('./utils/nodeManager');
 const { registerPythonHandlers } = require('./utils/pythonManager');
 const { registerJavaHandlers } = require('./utils/javaManager');
 const { createEnvDir, clearDirectory } = require('./utils/dir');
+const { addUserPath } = require('./utils/path');
 
 const metaData = yaml.load(fs.readFileSync(path.join(__dirname, 'config/meta.yml'), 'utf8'));
 const license = fs.readFileSync(path.join(__dirname, 'config/LICENSE.txt'), 'utf8');
@@ -21,6 +22,9 @@ let mainWindow;
 let configWindow;
 
 createEnvDir();
+addUserPath(path.join(userDataDir, 'fluffbox/nodejs_versions/current'));
+addUserPath(path.join(userDataDir, 'fluffbox/python_versions/current'));
+addUserPath(path.join(userDataDir, 'fluffbox/java_versions/current/bin'));
 
 function loadMenu() {
   const menu = JSON.parse(fs.readFileSync(path.join(__dirname, `config/menu_${lang}.json`)));
@@ -162,6 +166,7 @@ function loadMenu() {
                 }
               });
             }
+            break;
           case "openConfig":
             item.click = () => createConfigWindow();
             break;
@@ -193,6 +198,16 @@ function loadMenu() {
                 icon: path.join(__dirname, 'resources/icon', 'fluffbox.ico')
               });
             }
+            break;
+          case "openIssue":
+            item.click = () => {
+              shell.openExternal(`${metaData.githubRepository}/issues`);
+            }
+            break;
+          case "info":
+            item.click = () => {
+              shell.openExternal("https://www.2237yh.net");
+            }
         }
       }
     }
@@ -203,10 +218,10 @@ function loadMenu() {
 
 const createWindow = () => {
   mainWindow = new BrowserWindow({
-    width: 1265,
-    height: 750,
-    minWidth: 1265,
-    minHeight: 750,
+    width: 1320,
+    height: 760,
+    minWidth: 1320,
+    minHeight: 760,
     title: 'FluffBox',
     webPreferences: {
       nodeIntegration: true,
@@ -268,14 +283,17 @@ const createConfigWindow = () => {
     try {
       configManager.set('language', selectedLang);
       configManager.save();
-      return true;
-    } catch (err) {
-      dialog.showMessageBox({
-        type: 'error',
-        title: ' (´× ω ×｀；)ｳﾜｯ!!',
-        message: `config書き込みエラー: ${err}`,
+      sendLog(`言語設定を ${selectedLang} に変更しました。再起動が必要です。`, 'main-log');
+      dialog.showMessageBox(configWindow, {
+        type: 'info',
+        title: '言語設定',
+        message: '言語設定が変更されました。アプリケーションを再起動してください。'
       });
-      console.error('config書き込みエラー:', err);
+      app.relaunch();
+      app.quit();
+      return true;
+    } catch (error) {
+      sendLog(`言語設定の変更中にエラーが発生しました: ${error.message}`, 'main-log');
       return false;
     }
   });

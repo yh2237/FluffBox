@@ -6,7 +6,7 @@
         <title>FluffBox</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-        <link rel="stylesheet" href="./css/index.css">
+        <link rel="stylesheet" href="../css/index.css">
     </head>
     <body>
         <div class="sidebar">
@@ -15,18 +15,10 @@
                 <span>FluffBox</span>
             </h2>
             <div class="sidebar-button-group">
-                <button id="sidebarNodeButton" class="sidebar-button">
-                    <i class="fa-brands fa-node-js"></i>
-                    Node.js
-                </button>
-                <button id="sidebarPythonButton" class="sidebar-button">
-                    <i class="fa-brands fa-python"></i>
-                    Python
-                </button>
-                <button id="sidebarJavaButton" class="sidebar-button">
-                    <i class="fa-brands fa-java"></i>
-                    Java
-                </button>
+                <button id="sidebarNodeButton" class="sidebar-button"><i class="fa-brands fa-node-js"></i> Node.js</button>
+                <button id="sidebarPythonButton" class="sidebar-button"><i class="fa-brands fa-python"></i> Python</button>
+                <button id="sidebarJavaButton" class="sidebar-button"><i class="fa-brands fa-java"></i> Java</button>
+                <!-- <button id="sidebarGoButton" class="sidebar-button">Go</button> -->
             </div>
         </div>
         <div class="main-content">
@@ -69,6 +61,9 @@
             });
             document.getElementById('sidebarJavaButton').addEventListener('click', () => {
                 ipcRenderer.invoke('load-page', 'java');
+            });
+            document.getElementById('sidebarGoButton').addEventListener('click', () => {
+                ipcRenderer.invoke('load-page', 'go');
             });
         </script>
     </body>

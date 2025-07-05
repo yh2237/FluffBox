@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>FluffBox</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-        <link rel="stylesheet" href="./css/index.css">
+        <link rel="stylesheet" href="../css/index.css">
     </head>
     <body>
         <div class="sidebar">
@@ -15,26 +15,18 @@
                 <span>FluffBox</span>
             </h2>
             <div class="sidebar-button-group">
-                <button id="sidebarNodeButton" class="sidebar-button">
-                    <i class="fa-brands fa-node-js"></i>
-                    Node.js
-                </button>
-                <button id="sidebarPythonButton" class="sidebar-button">
-                    <i class="fa-brands fa-python"></i>
-                    Python
-                </button>
-                <button id="sidebarJavaButton" class="sidebar-button">
-                    <i class="fa-brands fa-java"></i>
-                    Java
-                </button>
+                <button id="sidebarNodeButton" class="sidebar-button"><i class="fa-brands fa-node-js"></i> Node.js</button>
+                <button id="sidebarPythonButton" class="sidebar-button"><i class="fa-brands fa-python"></i> Python</button>
+                <button id="sidebarJavaButton" class="sidebar-button"><i class="fa-brands fa-java"></i> Java</button>
+                <button id="sidebarGoButton" class="sidebar-button">Go</button>
             </div>
         </div>
         <div class="main-content">
             <div class="container">
                 <h1>Welcome to FluffBox</h1>
-                <p>FluffBox allows you to install, uninstall, and version control various execution environments!</p>
+                <p>FluffBox allows you to install, uninstall, and manage versions of various runtime environments!</p>
                 <br>
-                <h1>Currently the following operating environments are supported:</h1>
+                <h1>Currently, the following runtime environments are supported.</h1>
                 <hr style="margin: 5px 0; border: none; border-top: 1px solid rgb(96, 96, 96);">
                 <ul>
                     <li>
@@ -52,10 +44,10 @@
                         <i class="fa-brands fa-java"></i>
                         Java
                     </li>
-                    <li>（There are only three so far, but I plan to add more in the future.）</li>
+                    <li>(Only 3 for now, but planning to add more in the future)</li>
                 </ul>
                 <hr style="margin: 5px 0; border: none; border-top: 1px solid rgb(96, 96, 96);">
-                <p>From the menu on the left, select your environment</p>
+                <p>Please select a runtime environment from the left menu.</p>
             </div>
         </div>
         <script>
@@ -69,6 +61,9 @@
             });
             document.getElementById('sidebarJavaButton').addEventListener('click', () => {
                 ipcRenderer.invoke('load-page', 'java');
+            });
+            document.getElementById('sidebarGoButton').addEventListener('click', () => {
+                ipcRenderer.invoke('load-page', 'go');
             });
         </script>
     </body>

@@ -30,6 +30,7 @@
       { "label": "バージョン情報", "id": "showVersion" },
       { "label": "GitHub", "id": "openGithub" },
       { "label": "問題を報告", "id": "openIssue" },
+      { "label": "作者情報", "id": "info"},
       { "type": "separator" },
       { "label": "ライセンス", "id": "showLicense" }
     ]

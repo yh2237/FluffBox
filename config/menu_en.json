@@ -30,6 +30,7 @@
       { "label": "Version Information", "id": "showVersion" },
       { "label": "GitHub", "id": "openGithub" },
       { "label": "Report an issue", "id": "openIssue" },
+      { "label": "Author Info", "id": "info"},
       { "type": "separator" },
       { "label": "License", "id": "showLicense" }
     ]
